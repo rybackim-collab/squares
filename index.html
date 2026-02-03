@@ -366,6 +366,92 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
+            
+            /* Base mobile optimizations (both orientations) */
+            .grid-container {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            .grid-square.claimed {
+                word-break: break-word;
+                hyphens: auto;
+            }
+        }
+
+        /* PORTRAIT MODE - Ultra compact */
+        @media (max-width: 640px) and (orientation: portrait) {
+            .grid {
+                min-width: 100% !important;
+                width: 100%;
+                grid-template-columns: 25px repeat(10, 1fr);
+                grid-template-rows: 25px repeat(10, 1fr);
+                gap: 1px;
+                font-size: 0.55rem;
+            }
+            
+            .grid-cell {
+                padding: 0.15rem;
+                min-height: 30px;
+                font-size: 0.55rem;
+            }
+            
+            .grid-square {
+                font-size: 0.5rem;
+                line-height: 1.1;
+            }
+            
+            .grid-header,
+            .grid-number {
+                font-size: 0.6rem;
+                padding: 0.15rem;
+            }
+            
+            .team-horizontal-label,
+            .team-vertical-label {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* LANDSCAPE MODE - Comfortable */
+        @media (max-width: 640px) and (orientation: landscape) {
+            .grid {
+                min-width: 100% !important;
+                width: 100%;
+                grid-template-columns: 30px repeat(10, 1fr);
+                grid-template-rows: 30px repeat(10, 1fr);
+                gap: 1px;
+                font-size: 0.65rem;
+            }
+            
+            .grid-cell {
+                padding: 0.25rem;
+                min-height: 35px;
+                font-size: 0.65rem;
+            }
+            
+            .grid-square {
+                font-size: 0.6rem;
+                line-height: 1.2;
+            }
+            
+            .grid-header,
+            .grid-number {
+                font-size: 0.7rem;
+                padding: 0.2rem;
+            }
+            
+            .team-horizontal-label,
+            .team-vertical-label {
+                font-size: 0.9rem;
+            }
+        }
+            
     
             /* Mobile-optimized grid */
             .grid {
