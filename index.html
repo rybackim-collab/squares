@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Pool Manager</title>
+    <style>
+        :root {
+            --color-bg-primary: #fcfcf9;
+            --color-bg-secondary: #fffffe;
+            --color-text-primary: #13343b;
+            --color-text-secondary: #626c71;
+            --color-primary: #218095;
+            --color-primary-hover: #1d7480;
+            --color-primary-active: #1a6873;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-success: #218095;
+            --color-error: #c0152f;
+            --color-warning: #e68161;
+            --color-winner: #ffd700;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg-primary: #1f2121;
+                --color-bg-secondary: #262828;
+                --color-text-primary: #f5f5f5;
+                --color-text-secondary: #a7a9a9;
+                --color-primary: #32b8c6;
+                --color-primary-hover: #2da6b2;
+                --color-primary-active: #2996a1;
+                --color-border: rgba(119, 124, 124, 0.3);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(94, 82, 64, 0.08);
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #a0122a;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+        }
+
+        .grid-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .grid {
+            display: inline-grid;
+            grid-template-columns: 40px repeat(10, 1fr);
+            grid-template-rows: 40px repeat(10, 1fr);
+            gap: 2px;
+            background: var(--color-border);
+            border: 2px solid var(--color-border);
+            min-width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                min-width: 600px;
+            }
+        }
+
+        .grid-cell {
+            background: var(--color-bg-secondary);
+            padding: 0.5rem;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .grid-header {
+            background: var(--color-primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .grid-number {
+            background: rgba(33, 128, 141, 0.1);
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .grid-square {
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-direction: column;
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .grid-square:hover:not(.claimed):not(.disabled) {
+            background: rgba(33, 128, 141, 0.1);
+        }
+
+        .grid-square.claimed {
+            background: rgba(33, 128, 141, 0.15);
+            cursor: default;
+        }
+
+        .grid-square.winner {
+            background: var(--color-winner);
+            color: #000;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .grid-square.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .info-box {
+            background: rgba(33, 128, 141, 0.1);
+            border-left: 4px solid var(--color-primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: rgba(230, 129, 97, 0.1);
+            border-left: 4px solid var(--color-warning);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background: rgba(33, 128, 141, 0.1);
+            border-left: 4px solid var(--color-success);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .code-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            background: rgba(33, 128, 141, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1rem 0;
+            letter-spacing: 2px;
+        }
+
+        .grid-list {
+            list-style: none;
+        }
+
+        .grid-list-item {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .grid-list-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .grid-list-item h3 {
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        .grid-list-item .meta {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .badge-draft { background: #e2e8f0; color: #475569; }
+        .badge-live { background: rgba(33, 128, 141, 0.2); color: var(--color-primary); }
+        .badge-full { background: rgba(230, 129, 97, 0.2); color: var(--color-warning); }
+        .badge-active { background: rgba(33, 197, 94, 0.2); color: #15803d; }
+        .badge-complete { background: rgba(156, 163, 175, 0.2); color: #4b5563; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: var(--color-bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .winners-panel {
+            background: var(--color-bg-secondary);
+            border: 2px solid var(--color-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .winner-item {
+            padding: 0.75rem;
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid var(--color-winner);
+            margin-bottom: 0.75rem;
+            border-radius: 4px;
+        }
+
+        .success-banner {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-success);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideDown 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: rgba(33, 128, 141, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+        #viewSelector {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .view-tabs {
+            display: inline-flex;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.25rem;
+        }
+
+        .view-tab {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            transition: all 0.2s;
+        }
+
+        .view-tab.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+    /* Team name labels */
+    .grid-with-labels {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .team-horizontal-label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .grid-and-vertical-label {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .team-vertical-label {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        text-align: center;
+    }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏈 Square Pool Manager</h1>
+            <p class="subtitle">Manage your game day square pools with ease</p>
+        </header>
+
+        <!-- View Selector -->
+        <div id="viewSelector">
+            <div class="view-tabs">
+                <button class="view-tab" onclick="showView(event, 'home')">Home</button>
+                <button class="view-tab active" onclick="showView(event, 'access')">Join Grid</button>
+                <button class="view-tab" onclick="showView(event, 'manage')">Manage Grid</button>
+            </div>
+        </div>
+
+        <!-- Home View -->
+        <div id="homeView" class="hidden">
+            <div class="card">
+                <h2>Welcome to Square Pool Manager</h2>
+                <p style="margin-bottom: 1rem;">Create and manage square pools for your favorite games. Perfect for Super Bowl parties, playoffs, and any sporting event!</p>
+                
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="showCreateGridModal()">Create New Grid</button>
+                    <button class="btn btn-secondary" onclick="showView(event, 'manage')">Manage My Grids</button>
+                </div>
+            </div>
+
+            <div id="myGridsList"></div>
+        </div>
+
+        <!-- Access Grid View -->
+        <div id="accessView">   
+            <div class="card">
+                <h2>Join a Grid</h2>
+                <p style="margin-bottom: 1rem;">Enter the access code to view and claim squares</p>
+                
+                <div class="input-group">
+                    <label for="accessCodeInput">Access Code</label>
+                    <input type="text" id="accessCodeInput" placeholder="Enter 6-8 character code" style="text-transform: uppercase;">
+                </div>
+                
+                <button class="btn btn-primary" onclick="accessGrid()">Access Grid</button>
+            </div>
+
+            <div id="participantGridView" class="hidden"></div>
+        </div>
+
+        <!-- Manage Grid View -->
+        <div id="manageView" class="hidden">
+            <div class="card">
+                <h2>Manage Grid</h2>
+                <p style="margin-bottom: 1rem;">Enter your manager code to manage your grid</p>
+                
+                <div class="input-group">
+                    <label for="managerCodeInput">Manager Code</label>
+                    <input type="text" id="managerCodeInput" placeholder="Enter manager code" style="text-transform: uppercase;">
+                </div>
+                
+                <button class="btn btn-primary" onclick="accessManagerGrid()">Access Manager Dashboard</button>
+            </div>
+
+            <div id="managerGridView" class="hidden"></div>
+        </div>
+    </div>
+
+    <!-- Create Grid Modal -->
+    <div id="createGridModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Grid</h2>
+                <button class="modal-close" onclick="closeModal('createGridModal')">&times;</button>
+            </div>
+            
+            <form id="createGridForm" onsubmit="createGrid(event)">
+                <div class="input-group">
+                    <label for="gridName">Grid Name *</label>
+                    <input type="text" id="gridName" required placeholder="Super Bowl 2026">
+                </div>
+
+                <div class="input-group">
+                    <label for="team1Name">Team 1 Name (Horizontal Header)</label>
+                    <input type="text" id="team1Name" required placeholder="Kansas City">
+                </div>
+
+                <div class="input-group">
+                    <label for="team2Name">Team 2 Name (Vertical Side)</label>
+                    <input type="text" id="team2Name" required placeholder="Philadelphia">
+                </div>
+
+                <div class="input-group">
+                    <label for="eventDate">Event Date & Time *</label>
+                    <input type="datetime-local" id="eventDate" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="pricePerSquare">Price per Square ($) *</label>
+                        <input type="number" id="pricePerSquare" required min="0" step="0.01" placeholder="20.00">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="payoutFrequency">Payout Frequency *</label>
+                        <select id="payoutFrequency" required onchange="updatePayoutFields()">
+                            <option value="">Select...</option>
+                            <option value="quarterly">Quarterly (4 payouts)</option>
+                            <option value="half-final">Half & Final (2 payouts)</option>
+                            <option value="final">Final Only (1 payout)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="payoutFields"></div>
+
+                <div class="input-group">
+                    <label for="assignmentMethod">Number Assignment Method *</label>
+                    <select id="assignmentMethod" required>
+                        <option value="">Select...</option>
+                        <option value="random">Random Assignment</option>
+                        <option value="manual">Manual Assignment</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="gridRules">Rules/Instructions (Optional)</label>
+                    <textarea id="gridRules" rows="3" placeholder="Max 8 squares per person. Payment due before game time."></textarea>
+                </div>
+
+                <div class="toolbar">
+                    <button type="submit" class="btn btn-primary">Create Grid</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createGridModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Claim Square Modal -->
+    <div id="claimSquareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Claim Square</h2>
+                <button class="modal-close" onclick="closeModal('claimSquareModal')">&times;</button>
+            </div>
+            
+            <form id="claimSquareForm" onsubmit="claimSquare(event)">
+                <div class="input-group">
+                    <label for="claimName">Your Name *</label>
+                    <input type="text" id="claimName" required placeholder="John Smith">
+                </div>
+
+                <div class="input-group">
+                    <label for="claimPhone">Phone Number *</label>
+                    <input type="tel" id="claimPhone" required placeholder="(555) 123-4567" pattern="\([0-9]{3}\) [0-9]{3}-[0-9]{4}" oninput="formatPhoneNumber(this)">
+                    <small style="color: var(--color-text-secondary);">Format: (XXX) XXX-XXXX</small>
+                </div>
+
+                <div class="toolbar">
+                    <button type="submit" class="btn btn-primary">Claim Square</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('claimSquareModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Square Modal -->
+    <div id="editSquareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Square</h2>
+                <button class="modal-close" onclick="closeModal('editSquareModal')">&times;</button>
+            </div>
+            
+            <div id="editSquareContent"></div>
+        </div>
+    </div>
+
+    <!-- Assign Numbers Modal -->
+    <div id="assignNumbersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assign Numbers</h2>
+                <button class="modal-close" onclick="closeModal('assignNumbersModal')">&times;</button>
+            </div>
+            
+            <div id="assignNumbersContent"></div>
+        </div>
+    </div>
+
+    <!-- Enter Scores Modal -->
+    <div id="enterScoresModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Enter Scores</h2>
+                <button class="modal-close" onclick="closeModal('enterScoresModal')">&times;</button>
+            </div>
+            
+            <form id="enterScoresForm" onsubmit="enterScores(event)">
+                <div id="scoresContent"></div>
+            </form>
+        </div>
+    </div>
+          <!-- Firebase SDKs (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase config -->
+    <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDl8cG-hU92dfjlZ0NM2_OrNaWP2qzYwcU",
+    authDomain: "square-pool.firebaseapp.com",
+    projectId: "square-pool",
+    storageBucket: "square-pool.firebasestorage.app",
+    messagingSenderId: "802869413410",
+    appId: "1:802869413410:web:95ae2cdab1f5ea66812c7b",
+    measurementId: "G-L65JZF42KG"
+  };
+
+ firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+   
+  <script>
+    // Data Structure
+    let grids = [];
+    let currentGrid = null;
+    let selectedSquare = null;
+    let autoRefreshInterval = null;
+
+    // ===== Firestore helpers =====
+
+    // Save a grid to Firestore (by id)
+    async function saveGridToFirestore(grid) {
+    console.log('Saving grid to Firestore with id:', grid.id);
+    try {
+        const docId = String(grid.id);
+
+        const docData = {
+            id: grid.id,
+            name: grid.name,
+            eventName: grid.eventName,
+            eventDate: grid.eventDate,
+            pricePerSquare: grid.pricePerSquare,
+            payoutFrequency: grid.payoutFrequency,
+            payouts: grid.payouts,
+            assignmentMethod: grid.assignmentMethod,
+            rules: grid.rules || '',
+            accessCode: grid.accessCode,
+            managerCode: grid.managerCode,
+            status: grid.status,
+            squares: grid.squares,
+            rowNumbers: grid.rowNumbers,
+            colNumbers: grid.colNumbers,
+            numbersAssigned: grid.numbersAssigned,
+            scores: grid.scores,
+            winners: grid.winners,
+            createdAt: grid.createdAt,
+            notifications: grid.notifications || []
+        };
+
+        await db.collection('grids').doc(docId).set(docData);
+        console.log('Grid saved to Firestore.');
+    } catch (err) {
+        console.error('Error saving grid to Firestore', err && err.code, err && err.message);
+    }
+}
+    // Load a grid from Firestore by managerCode
+    async function loadGridByManagerCode(code) {
+        const snap = await db
+            .collection('grids')
+            .where('managerCode', '==', code)
+            .limit(1)
+            .get();
+        if (snap.empty) return null;
+        return snap.docs[0].data();
+    }
+
+    // Load a grid from Firestore by accessCode
+    async function loadGridByAccessCode(code) {
+        const snap = await db
+            .collection('grids')
+            .where('accessCode', '==', code)
+            .limit(1)
+            .get();
+        if (snap.empty) return null;
+        return snap.docs[0].data();
+    }
+
+    // Initialize
+    function init() {
+        loadGrids();
+        renderMyGrids();
+            
+            // Set default event date to tomorrow at 6 PM
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(18, 0, 0, 0);
+            document.getElementById('eventDate').value = formatDateTimeLocal(tomorrow);
+        }
+
+        // Load grids from storage
+        function loadGrids() {
+            const stored = localStorage.getItem('squarePoolGrids');
+            if (stored) {
+                grids = JSON.parse(stored);
+                
+                // Clean up archived grids (older than 14 days after event)
+                const now = new Date();
+                grids = grids.filter(grid => {
+                    const eventDate = new Date(grid.eventDate);
+                    const archiveDate = new Date(eventDate);
+                    archiveDate.setDate(archiveDate.getDate() + 14);
+                    return now < archiveDate;
+                });
+                
+                saveGrids();
+            }
+        }
+
+        // Save grids to storage
+        function saveGrids() {
+            localStorage.setItem('squarePoolGrids', JSON.stringify(grids));
+        }
+
+        // Generate unique code
+        function generateCode(length = 8) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < length; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const exists = grids.some(g => g.accessCode === code || g.managerCode === code);
+            if (exists) return generateCode(length);
+            return code;
+        }
+
+        // Format datetime for input
+        function formatDateTimeLocal(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Update payout fields based on frequency (create form)
+        function updatePayoutFields() {
+            const frequency = document.getElementById('payoutFrequency').value;
+            const container = document.getElementById('payoutFields');
+            if (!frequency) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="info-box" style="margin-top: 1rem;"><strong>Payout Amounts</strong></div>';
+            
+            if (frequency === 'quarterly') {
+                html += `
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Q1 Payout ($)</label>
+                            <input type="number" id="payoutQ1" required min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Q2 Payout ($)</label>
+                            <input type="number" id="payoutQ2" required min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Q3 Payout ($)</label>
+                            <input type="number" id="payoutQ3" required min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Final Payout ($)</label>
+                            <input type="number" id="payoutFinal" required min="0" step="0.01">
+                        </div>
+                    </div>
+                `;
+            } else if (frequency === 'half-final') {
+                html += `
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Halftime Payout ($)</label>
+                            <input type="number" id="payoutHalf" required min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Final Payout ($)</label>
+                            <input type="number" id="payoutFinal" required min="0" step="0.01">
+                        </div>
+                    </div>
+                `;
+            } else if (frequency === 'final') {
+                html += `
+                    <div class="input-group">
+                        <label>Final Payout ($)</label>
+                        <input type="number" id="payoutFinal" required min="0" step="0.01">
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Create grid
+function createGrid(e) {
+    e.preventDefault();
+    
+    const frequency = document.getElementById('payoutFrequency').value;
+    const payouts = {};
+    
+    if (frequency === 'quarterly') {
+        payouts.q1 = parseFloat(document.getElementById('payoutQ1').value);
+        payouts.q2 = parseFloat(document.getElementById('payoutQ2').value);
+        payouts.q3 = parseFloat(document.getElementById('payoutQ3').value);
+        payouts.final = parseFloat(document.getElementById('payoutFinal').value);
+    } else if (frequency === 'half-final') {
+        payouts.half = parseFloat(document.getElementById('payoutHalf').value);
+        payouts.final = parseFloat(document.getElementById('payoutFinal').value);
+    } else {
+        payouts.final = parseFloat(document.getElementById('payoutFinal').value);
+    }
+
+    const grid = {
+        id: Date.now(),
+        name: document.getElementById('gridName').value,
+        team1Name: document.getElementById('team1Name').value,
+        team2Name: document.getElementById('team2Name').value,
+        eventName: document.getElementById('team1Name').value + ' vs ' + document.getElementById('team2Name').value,
+        eventDate: document.getElementById('eventDate').value,
+        pricePerSquare: parseFloat(document.getElementById('pricePerSquare').value),
+        payoutFrequency: frequency,
+        payouts: payouts,
+        assignmentMethod: document.getElementById('assignmentMethod').value,
+        rules: document.getElementById('gridRules').value,
+        accessCode: generateCode(),
+        managerCode: generateCode(),
+        status: 'live',
+        squares: Array(100).fill(null).map((_, i) => ({
+            id: i,
+            row: Math.floor(i / 10),
+            col: i % 10,
+            owner: null
+        })),
+        rowNumbers: Array(10).fill(null),
+        colNumbers: Array(10).fill(null),
+        numbersAssigned: false,
+        scores: {},
+        winners: [],
+        createdAt: new Date().toISOString(),
+        notifications: []
+    };
+
+    grids.push(grid);
+    saveGrids();
+    saveGridToFirestore(grid);
+    
+    closeModal('createGridModal');
+    document.getElementById('createGridForm').reset();
+    
+    // Show codes and redirect
+    setTimeout(() => {
+        showSuccessBanner('✅ Grid created successfully!');
+        const codesMessage = `Grid Created Successfully!\n\nAccess Code: ${grid.accessCode}\n(Share with participants)\n\nManager Code: ${grid.managerCode}\n(Keep private for management)\n\nSave these codes!`;
+        alert(codesMessage);
+    }, 500);
+} // end of createGrid
+// Modals & banners
+function showCreateGridModal() {
+    showModal('createGridModal');
+}
+
+function showModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+function showSuccessBanner(message) {
+    const banner = document.createElement('div');
+    banner.className = 'success-banner';
+    banner.textContent = message;
+    document.body.appendChild(banner);
+
+    setTimeout(function () {
+        banner.style.animation = 'slideUp 0.3s ease forwards';
+        setTimeout(function () { banner.remove(); }, 200);
+    }, 2000);
+}
+
+        // Show view (note: pass event explicitly)
+        function showView(ev, view) {
+            if (ev && ev.target) {
+                document.querySelectorAll('.view-tab').forEach(tab => tab.classList.remove('active'));
+                ev.target.classList.add('active');
+            }
+            
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('accessView').classList.add('hidden');
+            document.getElementById('manageView').classList.add('hidden');
+            
+            stopAutoRefresh();
+            currentGrid = null;
+            
+            if (view === 'home') {
+                document.getElementById('homeView').classList.remove('hidden');
+                renderMyGrids();
+            } else if (view === 'access') {
+                document.getElementById('accessView').classList.remove('hidden');
+                document.getElementById('participantGridView').classList.add('hidden');
+            } else if (view === 'manage') {
+                document.getElementById('manageView').classList.remove('hidden');
+                document.getElementById('managerGridView').classList.add('hidden');
+            }
+        }
+
+        // Auto-format phone numbers as user types
+        function formatPhoneNumber(input) {
+        // Get the input value and remove all non-digit characters
+         let value = input.value.replace(/\D/g, '');
+    
+         // Store cursor position
+         let cursorPosition = input.selectionStart;
+        let oldLength = input.value.length;
+    
+        // Format the phone number
+        let formattedValue = '';
+        if (value.length > 0) {
+             formattedValue = '(' + value.substring(0, 3);
+        if (value.length >= 3) {
+            formattedValue += ') ' + value.substring(3, 6);
+        }
+        if (value.length >= 6) {
+            formattedValue += '-' + value.substring(6, 10);
+        }
+    }
+    
+        // Update the input value
+        input.value = formattedValue;
+    
+        // Adjust cursor position to account for formatting characters
+        let newLength = formattedValue.length;
+        let lengthDiff = newLength - oldLength;
+        let newCursorPosition = cursorPosition + lengthDiff;
+    
+        // Set cursor position
+        if (newCursorPosition < 0) newCursorPosition = 0;
+        if (newCursorPosition > newLength) newCursorPosition = newLength;
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+}
+
+        // Render my grids list
+        function renderMyGrids() {
+            const container = document.getElementById('myGridsList');
+            
+            if (grids.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <p style="text-align: center; color: var(--color-text-secondary);">
+                            No grids created yet. Click "Create New Grid" to get started!
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="card"><h2>My Grids</h2><ul class="grid-list">';
+            
+            grids.forEach(grid => {
+                const filledSquares = grid.squares.filter(s => s.owner).length;
+                const eventDate = new Date(grid.eventDate);
+                const status = getGridStatus(grid);
+                
+                html += `
+                    <li class="grid-list-item" onclick="quickViewGrid('${grid.managerCode}')">
+                        <h3>${grid.name} <span class="badge badge-${status}">${status.toUpperCase()}</span></h3>
+                        <div class="meta">
+                            ${grid.eventName} • ${eventDate.toLocaleDateString()} ${eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}<br>
+                            ${filledSquares}/100 squares filled • Access Code: <strong>${grid.accessCode}</strong>
+                        </div>
+                    </li>
+                `;
+            });
+            
+            html += '</ul></div>';
+            container.innerHTML = html;
+        }
+
+        // Get grid status
+        function getGridStatus(grid) {
+            const filledSquares = grid.squares.filter(s => s.owner).length;
+            if (grid.status === 'complete') return 'complete';
+            if (grid.numbersAssigned && Object.keys(grid.scores).length > 0) return 'active';
+            if (filledSquares === 100) return 'full';
+            return 'live';
+        }
+
+        // Quick view grid (from home)
+        function quickViewGrid(managerCode) {
+            document.getElementById('managerCodeInput').value = managerCode;
+            showView({target: document.querySelectorAll('.view-tab')[2]}, 'manage');
+            setTimeout(() => accessManagerGrid(), 100);
+        }
+
+        // Access grid as participant (multi-device)
+async function accessGrid() {
+    const code = document.getElementById('accessCodeInput').value.toUpperCase().trim();
+    
+    if (!code) {
+        alert('Please enter an access code');
+        return;
+    }
+
+    // 1) Try local grids first (desktop where it was created)
+    let grid = grids.find(g => g.accessCode === code);
+
+    // 2) If not found locally, try Firestore
+    if (!grid) {
+        try {
+            grid = await loadGridByAccessCode(code);
+        } catch (err) {
+            console.error('Error loading grid from Firestore by access code', err);
+        }
+    }
+
+    if (!grid) {
+        alert('Invalid access code');
+        return;
+    }
+
+    // Keep local copy in memory (and in localStorage for this device)
+    currentGrid = grid;
+    const idx = grids.findIndex(g => g.id === grid.id);
+    if (idx === -1) {
+        grids.push(grid);
+    } else {
+        grids[idx] = grid;
+    }
+    saveGrids();
+
+    renderParticipantGrid();
+    startAutoRefresh();
+}
+
+
+        // Access grid as manager (multi-device)
+async function accessManagerGrid() {
+    const code = document.getElementById('managerCodeInput').value.toUpperCase().trim();
+    
+    if (!code) {
+        alert('Please enter a manager code');
+        return;
+    }
+
+    // 1) Try local grids first
+    let grid = grids.find(g => g.managerCode === code);
+
+    // 2) If not found locally, try Firestore
+    if (!grid) {
+        try {
+            grid = await loadGridByManagerCode(code);
+        } catch (err) {
+            console.error('Error loading grid from Firestore by manager code', err);
+        }
+    }
+
+    if (!grid) {
+        alert('Invalid manager code');
+        return;
+    }
+
+    currentGrid = grid;
+    const idx = grids.findIndex(g => g.id === grid.id);
+    if (idx === -1) {
+        grids.push(grid);
+    } else {
+        grids[idx] = grid;
+    }
+    saveGrids();
+
+    renderManagerGrid();
+    startAutoRefresh();
+    checkNotifications(grid);
+}
+
+
+        // Render participant grid
+        function renderParticipantGrid() {
+            if (!currentGrid) return;
+            const container = document.getElementById('participantGridView');
+            const filledSquares = currentGrid.squares.filter(s => s.owner).length;
+            const eventDate = new Date(currentGrid.eventDate);
+            
+            let html = `
+                <div class="card">
+                    <h2>${currentGrid.name}</h2>
+                    <p><strong>Event:</strong> ${currentGrid.eventName}</p>
+                    <p><strong>Date:</strong> ${eventDate.toLocaleDateString()} ${eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    <p><strong>Price per Square:</strong> $${currentGrid.pricePerSquare.toFixed(2)}</p>
+                    <p><strong>Squares Filled:</strong> ${filledSquares}/100</p>
+                    
+                    ${currentGrid.rules ? `<div class="info-box"><strong>Rules:</strong><br>${currentGrid.rules}</div>` : ''}
+                    
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${filledSquares}</div>
+                            <div class="stat-label">Claimed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${100 - filledSquares}</div>
+                            <div class="stat-label">Available</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            html += renderGrid(false);
+            if (currentGrid.winners.length > 0) {
+                html += renderWinners();
+            }
+            
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+        }
+
+        // Render manager grid
+        function renderManagerGrid() {
+            if (!currentGrid) return;
+            const container = document.getElementById('managerGridView');
+            const filledSquares = currentGrid.squares.filter(s => s.owner).length;
+            const eventDate = new Date(currentGrid.eventDate);
+            const canEdit = !currentGrid.numbersAssigned;
+            
+            let html = `
+                <div class="card">
+                    <h2>${currentGrid.name}</h2>
+                    <p><strong>Event:</strong> ${currentGrid.eventName}</p>
+                    <p><strong>Date:</strong> ${eventDate.toLocaleDateString()} ${eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    
+                    <div class="code-display">
+                        Access Code: ${currentGrid.accessCode}
+                    </div>
+                    <div class="code-display">
+                        Manager Code: ${currentGrid.managerCode}
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${filledSquares}</div>
+                            <div class="stat-label">Claimed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${100 - filledSquares}</div>
+                            <div class="stat-label">Available</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">$${(filledSquares * currentGrid.pricePerSquare).toFixed(0)}</div>
+                            <div class="stat-label">Total Pot</div>
+                        </div>
+                    </div>
+                    
+                    <div class="toolbar">
+                        ${canEdit && filledSquares === 100 ? `<button class="btn btn-primary" onclick="showAssignNumbersModal()">Assign Numbers</button>` : ''}
+                        ${currentGrid.numbersAssigned ? `<button class="btn btn-primary" onclick="showEnterScoresModal()">Enter Scores</button>` : ''}
+                        <button class="btn btn-secondary btn-small" onclick="editGridDetails()">Edit Details</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteGrid()">Delete Grid</button>
+                    </div>
+                    
+                    ${filledSquares < 100 && !currentGrid.numbersAssigned ? 
+                        `<div class="warning-box">Grid must be full (100/100 squares) before numbers can be assigned.</div>` : ''}
+                </div>
+            `;
+
+            html += renderGrid(true);
+            if (currentGrid.winners.length > 0) {
+                html += renderWinners();
+            }
+            
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+        }
+
+        // Render grid
+        function renderGrid(isManager) {
+            if (!currentGrid) return '';
+            const canClaim = !currentGrid.numbersAssigned;
+            
+            let html = '<div class="card"><h2>Grid</h2>';
+
+            // Add team name labels
+            html += '<div class="grid-with-labels">';
+            html += `<div class="team-horizontal-label">${currentGrid.team1Name || currentGrid.eventName}</div>`;
+            html += '<div class="grid-and-vertical-label">';
+            html += `<div class="team-vertical-label">${currentGrid.team2Name || ''}</div>`;
+            html += '<div class="grid-container"><div class="grid">';
+
+                        html += '<div class="grid-cell grid-header"></div>';
+            
+            for (let col = 0; col < 10; col++) {
+                const num = currentGrid.colNumbers[col];
+                html += `<div class="grid-cell ${num !== null ? 'grid-number' : 'grid-header'}">${num !== null ? num : ''}</div>`;
+            }
+            
+            for (let row = 0; row < 10; row++) {
+                const rowNum = currentGrid.rowNumbers[row];
+                html += `<div class="grid-cell ${rowNum !== null ? 'grid-number' : 'grid-header'}">${rowNum !== null ? rowNum : ''}</div>`;
+                
+                for (let col = 0; col < 10; col++) {
+                    const squareId = row * 10 + col;
+                    const square = currentGrid.squares[squareId];
+                    const isWinner = currentGrid.winners.some(w => w.squareId === squareId);
+                    
+                    const classes = ['grid-cell', 'grid-square'];
+                    if (square.owner) classes.push('claimed');
+                    if (isWinner) classes.push('winner');
+                    if (!canClaim || square.owner) classes.push('disabled');
+                    
+                    let clickHandler = '';
+                    if (!isManager && canClaim && !square.owner) {
+                        clickHandler = `onclick="selectSquare(${squareId})"`;
+                    } else if (isManager && canClaim && square.owner) {
+                        clickHandler = `onclick="editSquare(${squareId})"`;
+                    }
+                    
+                    html += `<div class="${classes.join(' ')}" ${clickHandler}>`;
+                    
+                    if (square.owner) {
+                        html += `<div style="font-weight: 600;">${square.owner.name}</div>`;
+                        if (isManager) {
+                            html += `<div style="font-size: 0.7rem; opacity: 0.8;">${square.owner.phone}</div>`;
+                        }
+                    } else if (canClaim && !isManager) {
+                        html += '<div style="color: var(--color-text-secondary);">Available</div>';
+                    }
+                    
+                    html += '</div>';
+                }
+            }
+            
+            html += '</div></div></div></div></div>';
+            return html;
+        }
+
+        // Render winners
+        function renderWinners() {
+            let html = '<div class="winners-panel"><h2>🏆 Winners</h2>';
+            
+            currentGrid.winners.forEach(winner => {
+                const square = currentGrid.squares[winner.squareId];
+                html += `
+                    <div class="winner-item">
+                        <strong>${winner.period}:</strong> 
+                        Team A: ${winner.scoreA}, Team B: ${winner.scoreB} → 
+                        <strong>${square.owner.name}</strong> 
+                        (${currentGrid.rowNumbers[square.row]}, ${currentGrid.colNumbers[square.col]}) - 
+                        <strong>$${winner.payout.toFixed(2)}</strong>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        // Select square (participant)
+        function selectSquare(squareId) {
+            selectedSquare = squareId;
+            showModal('claimSquareModal');
+        }
+
+        // Claim square
+        function claimSquare(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('claimName').value.trim();
+            const phone = document.getElementById('claimPhone').value.trim();
+            
+            const userSquares = currentGrid.squares.filter(s => s.owner && s.owner.phone === phone);
+            if (userSquares.length >= 8) {
+                alert('You have already claimed the maximum of 8 squares.');
+                closeModal('claimSquareModal');
+                return;
+            }
+            
+            currentGrid.squares[selectedSquare].owner = { name, phone };
+            
+            const gridIndex = grids.findIndex(g => g.id === currentGrid.id);
+            grids[gridIndex] = currentGrid;
+            saveGrids();
+            
+            closeModal('claimSquareModal');
+
+            if (document.getElementById('participantGridView') && 
+                !document.getElementById('participantGridView').classList.contains('hidden')) {
+                renderParticipantGrid();
+            }
+            if (document.getElementById('managerGridView') && 
+                !document.getElementById('managerGridView').classList.contains('hidden')) {
+                renderManagerGrid();
+            }
+
+            currentGrid.notifications.push({
+                type: 'claim',
+                squareId: selectedSquare,
+                name,
+                phone,
+                timestamp: new Date().toISOString()
+            });
+
+            grids[gridIndex] = currentGrid;
+            saveGrids();
+
+            showSuccessBanner('✅ Square claimed successfully!');
+            selectedSquare = null;
+        }
+
+        // Edit square (manager)
+        function editSquare(squareId) {
+            const square = currentGrid.squares[squareId];
+            const container = document.getElementById('editSquareContent');
+
+            if (!square.owner) {
+                alert('This square is not claimed.');
+                return;
+            }
+
+            container.innerHTML = `
+                <form onsubmit="saveSquareEdit(event, ${squareId})">
+                    <div class="input-group">
+                        <label for="editSquareName">Name</label>
+                        <input type="text" id="editSquareName" required value="${square.owner.name}">
+                    </div>
+                    <div class="input-group">
+                        <label for="editSquarePhone">Phone Number</label>
+                        <input type="tel" id="editSquarePhone" required value="${square.owner.phone}" pattern="\\([0-9]{3}\\) [0-9]{3}-[0-9]{4}" oninput="formatPhoneNumber(this)">
+                        <small style="color: var(--color-text-secondary);">Format: (XXX) XXX-XXXX</small>
+                    </div>
+                    <div class="toolbar">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" onclick="releaseSquare(${squareId})">Release Square</button>
+                    </div>
+                </form>
+            `;
+
+            showModal('editSquareModal');
+        }
+
+        function saveSquareEdit(e, squareId) {
+            e.preventDefault();
+            const name = document.getElementById('editSquareName').value.trim();
+            const phone = document.getElementById('editSquarePhone').value.trim();
+
+            currentGrid.squares[squareId].owner = { name, phone };
+            const idx = grids.findIndex(g => g.id === currentGrid.id);
+            grids[idx] = currentGrid;
+            saveGrids();
+
+            closeModal('editSquareModal');
+            renderManagerGrid();
+            showSuccessBanner('✅ Square updated.');
+        }
+
+        function releaseSquare(squareId) {
+            if (!confirm('Release this square back to available?')) return;
+
+            currentGrid.squares[squareId].owner = null;
+            const idx = grids.findIndex(g => g.id === currentGrid.id);
+            grids[idx] = currentGrid;
+            saveGrids();
+
+            closeModal('editSquareModal');
+            renderManagerGrid();
+            showSuccessBanner('✅ Square released.');
+        }
+
+        // Assign numbers modal
+        function showAssignNumbersModal() {
+            const container = document.getElementById('assignNumbersContent');
+
+            container.innerHTML = `
+                <div class="info-box">
+                    You can assign numbers randomly or manually. Once numbers are assigned, you can no longer edit the grid or change ownership.
+                </div>
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="assignNumbersRandom()">Assign Randomly</button>
+                    <button class="btn btn-secondary" onclick="assignNumbersManual()">Assign Manually</button>
+                </div>
+            `;
+
+            showModal('assignNumbersModal');
+        }
+
+        function shuffleArray(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function assignNumbersRandom() {
+            const digits = [0,1,2,3,4,5,6,7,8,9];
+            currentGrid.rowNumbers = shuffleArray(digits);
+            currentGrid.colNumbers = shuffleArray(digits);
+            currentGrid.numbersAssigned = true;
+
+            const idx = grids.findIndex(g => g.id === currentGrid.id);
+            grids[idx] = currentGrid;
+            saveGrids();
+
+            closeModal('assignNumbersModal');
+            renderManagerGrid();
+            showSuccessBanner('✅ Numbers assigned randomly.');
+        }
+
+        function assignNumbersManual() {
+            const container = document.getElementById('assignNumbersContent');
+
+            let rowInputs = '';
+            let colInputs = '';
+            for (let i = 0; i < 10; i++) {
+                rowInputs += `<input type="number" min="0" max="9" id="rowNum${i}" style="width: 3rem; text-align:center;">`;
+                colInputs += `<input type="number" min="0" max="9" id="colNum${i}" style="width: 3rem; text-align:center;">`;
+            }
+
+            container.innerHTML = `
+                <div class="input-group">
+                    <label>Row Numbers (Team A)</label>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">${rowInputs}</div>
+                </div>
+                <div class="input-group">
+                    <label>Column Numbers (Team B)</label>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">${colInputs}</div>
+                </div>
+                <div class="warning-box">
+                    Each digit 0–9 must be used exactly once in each row and column set.
+                </div>
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="saveManualNumbers()">Save Numbers</button>
+                    <button class="btn btn-secondary" onclick="closeModal('assignNumbersModal')">Cancel</button>
+                </div>
+            `;
+        }
+
+        function saveManualNumbers() {
+            const rows = [];
+            const cols = [];
+
+            for (let i = 0; i < 10; i++) {
+                const rv = parseInt(document.getElementById(`rowNum${i}`).value, 10);
+                const cv = parseInt(document.getElementById(`colNum${i}`).value, 10);
+                if (isNaN(rv) || isNaN(cv) || rv < 0 || rv > 9 || cv < 0 || cv > 9) {
+                    alert('All numbers must be digits 0–9.');
+                    return;
+                }
+                rows.push(rv);
+                cols.push(cv);
+            }
+
+            const uniqueRows = new Set(rows);
+            const uniqueCols = new Set(cols);
+            if (uniqueRows.size !== 10 || uniqueCols.size !== 10) {
+                alert('Each digit 0–9 must appear exactly once in each set.');
+                return;
+            }
+
+            currentGrid.rowNumbers = rows;
+            currentGrid.colNumbers = cols;
+            currentGrid.numbersAssigned = true;
+
+            const idx = grids.findIndex(g => g.id === currentGrid.id);
+            grids[idx] = currentGrid;
+            saveGrids();
+
+            closeModal('assignNumbersModal');
+            renderManagerGrid();
+            showSuccessBanner('✅ Numbers assigned.');
+        }
+
+        // Enter scores
+        function showEnterScoresModal() {
+            const container = document.getElementById('scoresContent');
+            const frequency = currentGrid.payoutFrequency;
+
+            let html = '<div class="info-box">Enter the final scores for each period to determine winners.</div>';
+
+            if (frequency === 'quarterly') {
+                html += buildScoreFields(['Q1', 'Q2', 'Q3', 'Final']);
+            } else if (frequency === 'half-final') {
+                html += buildScoreFields(['Half', 'Final']);
+            } else {
+                html += buildScoreFields(['Final']);
+            }
+
+            html += `
+                <div class="toolbar" style="margin-top:1rem;">
+                    <button type="submit" class="btn btn-primary">Save Scores & Calculate Winners</button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            showModal('enterScoresModal');
+        }
+
+        function buildScoreFields(periods) {
+            let html = '';
+            periods.forEach(p => {
+                const key = p.toLowerCase();
+                const val = currentGrid.scores[key] || { a: '', b: '' };
+                html += `
+                    <div class="form-row" style="margin-bottom:0.75rem;">
+                        <div class="input-group">
+                            <label>${p} - Team A Score</label>
+                            <input type="number" min="0" id="${key}ScoreA" value="${val.a}">
+                        </div>
+                        <div class="input-group">
+                            <label>${p} - Team B Score</label>
+                            <input type="number" min="0" id="${key}ScoreB" value="${val.b}">
+                        </div>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        function enterScores(e) {
+            e.preventDefault();
+            const frequency = currentGrid.payoutFrequency;
+            const winners = [];
+            const scores = {};
+
+            function processPeriod(label, key, payoutKey) {
+                const a = parseInt(document.getElementById(`${key}ScoreA`).value, 10);
+                const b = parseInt(document.getElementById(`${key}ScoreB`).value, 10);
+                if (isNaN(a) || isNaN(b)) return;
+
+                scores[key] = { a, b };
+                const lastA = a % 10;
+                const lastB = b % 10;
+
+                const rowIndex = currentGrid.rowNumbers.indexOf(lastA);
+                const colIndex = currentGrid.colNumbers.indexOf(lastB);
+                if (rowIndex === -1 || colIndex === -1) return;
+
+                const squareId = rowIndex * 10 + colIndex;
+                const square = currentGrid.squares[squareId];
+                if (!square.owner) return;
+
+                const payout = currentGrid.payouts[payoutKey];
+                if (!payout || payout <= 0) return;
+
+                winners.push({
+                    period: label,
+                    key,
+                    squareId,
+                    scoreA: a,
+                    scoreB: b,
+                    payout
+                });
+            }
+
+            if (frequency === 'quarterly') {
+                processPeriod('Q1', 'q1', 'q1');
+                processPeriod('Q2', 'q2', 'q2');
+                processPeriod('Q3', 'q3', 'q3');
+                processPeriod('Final', 'final', 'final');
+            } else if (frequency === 'half-final') {
+                processPeriod('Half', 'half', 'half');
+                processPeriod('Final', 'final', 'final');
+            } else {
+                processPeriod('Final', 'final', 'final');
+            }
+
+            currentGrid.scores = scores;
+            currentGrid.winners = winners;
+            if (winners.length > 0) {
+                currentGrid.status = 'complete';
+            }
+
+            const idx = grids.findIndex(g => g.id === currentGrid.id);
+            grids[idx] = currentGrid;
+            saveGrids();
+            // Also save to Firestore for multi-device access
+    saveGridToFirestore(currentGrid);
+
+
+
+            closeModal('enterScoresModal');
+            renderManagerGrid();
+            showSuccessBanner('✅ Scores saved and winners calculated!');
+        }
+
+        // Edit grid details
+        function editGridDetails() {
+            const eventDate = new Date(currentGrid.eventDate);
+            const container = document.getElementById('managerGridView');
+
+            const formHtml = `
+                <div class="card">
+                    <h2>Edit Grid Details</h2>
+                    <form id="editGridForm" onsubmit="saveGridDetails(event)">
+                        <div class="input-group">
+                            <label for="editGridName">Grid Name</label>
+                            <input type="text" id="editGridName" required value="${currentGrid.name}">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="editEventName">Event/Game</label>
+                            <input type="text" id="editEventName" required value="${currentGrid.eventName}">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="editEventDate">Event Date & Time</label>
+                            <input type="datetime-local" id="editEventDate" required value="${formatDateTimeLocal(eventDate)}">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="editPricePerSquare">Price per Square ($)</label>
+                                <input type="number" id="editPricePerSquare" required min="0" step="0.01" value="${currentGrid.pricePerSquare}">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="editPayoutFrequency">Payout Frequency</label>
+                                <select id="editPayoutFrequency" required onchange="updateEditPayoutFields(true)">
+                                    <option value="quarterly" ${currentGrid.payoutFrequency === 'quarterly' ? 'selected' : ''}>Quarterly (4 payouts)</option>
+                                    <option value="half-final" ${currentGrid.payoutFrequency === 'half-final' ? 'selected' : ''}>Half & Final (2 payouts)</option>
+                                    <option value="final" ${currentGrid.payoutFrequency === 'final' ? 'selected' : ''}>Final Only (1 payout)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="editPayoutFields"></div>
+
+                        <div class="input-group">
+                            <label for="editAssignmentMethod">Number Assignment Method</label>
+                            <select id="editAssignmentMethod" required>
+                                <option value="random" ${currentGrid.assignmentMethod === 'random' ? 'selected' : ''}>Random Assignment</option>
+                                <option value="manual" ${currentGrid.assignmentMethod === 'manual' ? 'selected' : ''}>Manual Assignment</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="editGridRules">Rules/Instructions</label>
+                            <textarea id="editGridRules" rows="3">${currentGrid.rules || ''}</textarea>
+                        </div>
+
+                        <div class="toolbar">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" onclick="renderManagerGrid()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            container.innerHTML = formHtml;
+            updateEditPayoutFields(true);
+        }
+
+        function updateEditPayoutFields(initial = false) {
+            const frequency = document.getElementById('editPayoutFrequency').value;
+            const container = document.getElementById('editPayoutFields');
+
+            let html = '<div class="info-box" style="margin-top: 1rem;"><strong>Payout Amounts</strong></div>';
+
+            if (frequency === 'quarterly') {
+                html += `
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Q1 Payout ($)</label>
+                            <input type="number" id="editPayoutQ1" required min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Q2 Payout ($)</label>
+                            <input type="number" id="editPayoutQ2" required min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Q3 Payout ($)</label>
+                            <input type="number" id="editPayoutQ3" required min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Final Payout ($)</label>
+                            <input type="number" id="editPayoutFinal" required min="0" step="0.01">
+                        </div>
+                    </div>
+                `;
+            } else if (frequency === 'half-final') {
+                html += `
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Halftime Payout ($)</label>
+                            <input type="number" id="editPayoutHalf" required min="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Final Payout ($)</label>
+                            <input type="number" id="editPayoutFinal" required min="0" step="0.01">
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="input-group">
+                        <label>Final Payout ($)</label>
+                        <input type="number" id="editPayoutFinal" required min="0" step="0.01">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            if (initial) {
+                const p = currentGrid.payouts || {};
+                if (frequency === 'quarterly') {
+                    document.getElementById('editPayoutQ1').value = p.q1 || '';
+                    document.getElementById('editPayoutQ2').value = p.q2 || '';
+                    document.getElementById('editPayoutQ3').value = p.q3 || '';
+                    document.getElementById('editPayoutFinal').value = p.final || '';
+                } else if (frequency === 'half-final') {
+                    document.getElementById('editPayoutHalf').value = p.half || '';
+                    document.getElementById('editPayoutFinal').value = p.final || '';
+                } else {
+                    document.getElementById('editPayoutFinal').value = p.final || '';
+                }
+            }
+        }
+
+        function saveGridDetails(e) {
+            e.preventDefault();
+
+            currentGrid.name = document.getElementById('editGridName').value.trim();
+            currentGrid.eventName = document.getElementById('editEventName').value.trim();
+            currentGrid.eventDate = document.getElementById('editEventDate').value;
+            currentGrid.pricePerSquare = parseFloat(document.getElementById('editPricePerSquare').value);
+            currentGrid.payoutFrequency = document.getElementById('editPayoutFrequency').value;
+            currentGrid.assignmentMethod = document.getElementById('editAssignmentMethod').value;
+            currentGrid.rules = document.getElementById('editGridRules').value;
+
+            const payouts = {};
+            if (currentGrid.payoutFrequency === 'quarterly') {
+                payouts.q1 = parseFloat(document.getElementById('editPayoutQ1').value);
+                payouts.q2 = parseFloat(document.getElementById('editPayoutQ2').value);
+                payouts.q3 = parseFloat(document.getElementById('editPayoutQ3').value);
+                payouts.final = parseFloat(document.getElementById('editPayoutFinal').value);
+            } else if (currentGrid.payoutFrequency === 'half-final') {
+                payouts.half = parseFloat(document.getElementById('editPayoutHalf').value);
+                payouts.final = parseFloat(document.getElementById('editPayoutFinal').value);
+            } else {
+                payouts.final = parseFloat(document.getElementById('editPayoutFinal').value);
+            }
+            currentGrid.payouts = payouts;
+
+            const idx = grids.findIndex(g => g.id === currentGrid.id);
+            grids[idx] = currentGrid;
+            saveGrids();
+
+            renderManagerGrid();
+            showSuccessBanner('✅ Grid details updated.');
+        }
+
+        // Delete grid
+        function deleteGrid() {
+            if (!confirm('Delete this grid? This cannot be undone.')) return;
+
+            grids = grids.filter(g => g.id !== currentGrid.id);
+            saveGrids();
+            currentGrid = null;
+
+            document.getElementById('managerGridView').classList.add('hidden');
+            renderMyGrids();
+            showSuccessBanner('✅ Grid deleted.');
+        }
+
+        // Auto refresh
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            autoRefreshInterval = setInterval(() => {
+                loadGrids();
+                if (!currentGrid) return;
+                const updated = grids.find(g => g.id === currentGrid.id);
+                if (!updated) return;
+                currentGrid = updated;
+
+                if (document.getElementById('participantGridView') && 
+                    !document.getElementById('participantGridView').classList.contains('hidden')) {
+                    renderParticipantGrid();
+                }
+                if (document.getElementById('managerGridView') && 
+                    !document.getElementById('managerGridView').classList.contains('hidden')) {
+                    renderManagerGrid();
+                }
+            }, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            autoRefreshInterval = null;
+        }
+
+        // Notifications
+        function checkNotifications(grid) {
+            if (!grid.notifications || grid.notifications.length === 0) return;
+            grid.notifications = [];
+            const idx = grids.findIndex(g => g.id === grid.id);
+            grids[idx] = grid;
+            saveGrids();
+        }
+
+
+        // Modals & banners
+                // Open the Create Grid modal
+function showCreateGridModal() {
+    showModal('createGridModal');
+}
+        function showModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showSuccessBanner(message) {
+            const banner = document.createElement('div');
+            banner.className = 'success-banner';
+            banner.textContent = message;
+            document.body.appendChild(banner);
+
+            setTimeout(() => {
+                banner.style.animation = 'slideUp 0.3s ease forwards';
+                setTimeout(() => banner.remove(), 300);
+            }, 2000);
+        }
+
+        // Init
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
