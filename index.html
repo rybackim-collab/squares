@@ -398,7 +398,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Claim Square</h2>
-                <button class="modal-close" onclick="closeModal('claimSquareModal')">&times;</button>
             </div>
             
             <form id="claimSquareForm" onsubmit="claimSquare(event)">
@@ -970,7 +969,7 @@ async function accessManagerGrid() {
                         </div>
                         <div class="stat-card">
                             <div class="stat-value">${100 - filledSquares}</div>
-                            <div class="stat-label">Available</div>
+                            <div class="stat-label">Open</div>
                         </div>
                     </div>
                 </div>
@@ -1092,7 +1091,7 @@ async function accessManagerGrid() {
                             html += `<div style="font-size: 0.7rem; opacity: 0.8;">${square.owner.phone}</div>`;
                         }
                     } else if (canClaim && !isManager) {
-                        html += '<div style="color: var(--color-text-secondary);">Available</div>';
+                        html += '<div style="color: var(--color-text-secondary);">Open</div>';
                     }
                     
                     html += '</div>';
@@ -1223,7 +1222,7 @@ async function accessManagerGrid() {
         }
 
         function releaseSquare(squareId) {
-            if (!confirm('Release this square back to available?')) return;
+            if (!confirm('Release this square back to open?')) return;
 
             currentGrid.squares[squareId].owner = null;
             const idx = grids.findIndex(g => g.id === currentGrid.id);
